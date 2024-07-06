@@ -11,40 +11,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const redis_1 = require("redis");
 const client = (0, redis_1.createClient)();
-function processSubmission(submission) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { problemId, code, language } = JSON.parse(submission);
-        console.log(`Processing submission for problemId ${problemId}...`);
-        console.log(`Code: ${code}`);
-        console.log(`Language: ${language}`);
-        // Here you would add your actual processing logic
-        // Simulate processing delay
-        yield new Promise(resolve => setTimeout(resolve, 1000));
-        console.log(`Finished processing submission for problemId ${problemId}.`);
-    });
-}
-function startWorker() {
-    return __awaiter(this, void 0, void 0, function* () {
+const processSubmission = (submission) => __awaiter(void 0, void 0, void 0, function* () {
+    const { problemId, code, language } = JSON.parse(submission);
+    console.log(`Processing submission for problemId ${problemId}...`);
+    console.log(`Code: ${code}`);
+    console.log(`language: ${language}`);
+    yield new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log(`Finished processing submission for problemId ${problemId}.`);
+});
+const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield client.connect();
+        console.log("Worker connected to Redis");
+    }
+    catch (error) {
+        console.error;
+    }
+    while (true) {
         try {
-            yield client.connect();
-            console.log("Worker connected to Redis.");
-            // Main loop
-            while (true) {
-                try {
-                    const submission = yield client.brPop("problems", 0);
-                    // @ts-ignore
-                    yield processSubmission(submission.element);
-                }
-                catch (error) {
-                    console.error("Error processing submission:", error);
-                    // Implement your error handling logic here. For example, you might want to push
-                    // the submission back onto the queue or log the error to a file.
-                }
-            }
+            const submission = yield client.brPop("problems", 0);
+            yield processSubmission(submission.element);
         }
         catch (error) {
-            console.error("Failed to connect to Redis", error);
+            console.error("Error processing the submission", error);
         }
-    });
-}
-startWorker();
+    }
+});
+startServer();
