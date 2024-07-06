@@ -19,7 +19,7 @@ const processSubmission = (submission) => __awaiter(void 0, void 0, void 0, func
     yield new Promise((resolve) => setTimeout(resolve, 1000));
     console.log(`Finished processing submission for problemId ${problemId}.`);
 });
-const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
+const startWorker = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield client.connect();
         console.log("Worker connected to Redis");
@@ -30,11 +30,11 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     while (true) {
         try {
             const submission = yield client.brPop("problems", 0);
-            yield processSubmission(submission.element);
+            yield processSubmission(submission.element); //submission is an array with the key and the value, we only need the value
         }
         catch (error) {
             console.error("Error processing the submission", error);
         }
     }
 });
-startServer();
+startWorker();
